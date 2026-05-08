@@ -476,23 +476,4 @@ docker compose exec php bin/console debug:container
 - ⏳ Мобильное приложение
 - ⏳ Двухфакторная аутентификация (2FA)
 
-## 🤝 Вклад в проект
 
-1. Fork репозитория
-2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit изменений (`git commit -m 'Add AmazingFeature'`)
-4. Push в branch (`git push origin feature/AmazingFeature`)
-5. Откройте Pull Request
-
-## 📄 Лицензия
-
-Proprietary - Все права защищены
-
-## 📞 Контакты
-
-Для вопросов и поддержки: support@finansfactor.ru
-
----
-
-**Последнее обновление:** 28 декабря 2024
-**Версия:** 1.1.0
