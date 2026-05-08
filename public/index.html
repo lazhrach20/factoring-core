@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Факторинг Платформа</title>
+    <script>
+        // Redirect to profile if logged in, otherwise to login
+        const accessToken = localStorage.getItem('accessToken');
+        if (accessToken) {
+            window.location.href = 'profile.html';
+        } else {
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+    <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
+        <p>Загрузка...</p>
+    </div>
+</body>
+</html>

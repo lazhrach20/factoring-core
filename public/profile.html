@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Факторинг Платформа</title>
+
+    <!-- Tabler CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+
+    <style>
+        .badge-role {
+            font-size: 0.875rem;
+            padding: 0.35rem 0.65rem;
+        }
+        .permission-badge {
+            font-size: 0.75rem;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Company type badge in profile */
+        .company-type-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <div id="navigation-container"></div>
+
+    <!-- Page Content -->
+    <div class="page-wrapper">
+        <div class="page-header d-print-none">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <h2 class="page-title">
+                            Профиль пользователя
+                        </h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                <!-- Alert Messages -->
+                <div id="alertError" class="alert alert-danger d-none" role="alert">
+                    <div class="d-flex">
+                        <div><i class="ti ti-alert-circle icon alert-icon"></i></div>
+                        <div><strong>Ошибка!</strong> <span id="errorMessage"></span></div>
+                    </div>
+                </div>
+
+                <div class="row row-cards">
+                    <!-- User Information Card -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Личная информация</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="datagrid">
+                                    <div class="datagrid-item">
+                                        <div class="datagrid-title">Имя</div>
+                                        <div class="datagrid-content" id="userName">Загрузка...</div>
+                                    </div>
+                                    <div class="datagrid-item">
+                                        <div class="datagrid-title">Email</div>
+                                        <div class="datagrid-content" id="userEmail">Загрузка...</div>
+                                    </div>
+                                    <div class="datagrid-item">
+                                        <div class="datagrid-title">Телефон</div>
+                                        <div class="datagrid-content" id="userPhone">—</div>
+                                    </div>
+                                    <div class="datagrid-item">
+                                        <div class="datagrid-title">Компания</div>
+                                        <div class="datagrid-content" id="userCompany">Загрузка...</div>
+                                    </div>
+                                    <div class="datagrid-item">
+                                        <div class="datagrid-title">Последний вход</div>
+                                        <div class="datagrid-content" id="lastLogin">—</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Roles & Permissions Card -->
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Роли и права доступа</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Ваши роли</label>
+                                    <div id="userRoles">
+                                        <span class="badge bg-secondary">Загрузка...</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label">Ваши права</label>
+                                    <div id="userPermissions">
+                                        <span class="badge bg-secondary">Загрузка...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company Accounts Card -->
+                <div class="row row-cards mt-4" id="companyAccountsSection" style="display: none;">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="ti ti-credit-card me-2"></i>
+                                    Счета компании
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-vcenter">
+                                        <thead>
+                                            <tr>
+                                                <th>Название счета</th>
+                                                <th>ID</th>
+                                                <th class="text-end">Баланс</th>
+                                                <th>Статус</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="accountsTableBody">
+                                            <tr>
+                                                <td colspan="4" class="text-center text-secondary">
+                                                    <div class="spinner-border spinner-border-sm me-2"></div>
+                                                    Загрузка счетов...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction History Card -->
+                <div class="row row-cards mt-4" id="transactionHistorySection" style="display: none;">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="ti ti-arrows-exchange me-2"></i>
+                                    История операций
+                                </h3>
+                                <div class="card-actions">
+                                    <span class="badge bg-blue-lt text-blue">Последние 10</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-vcenter">
+                                        <thead>
+                                            <tr>
+                                                <th>Дата</th>
+                                                <th>Номер транзакции</th>
+                                                <th>Назначение</th>
+                                                <th>Откуда</th>
+                                                <th>Куда</th>
+                                                <th class="text-end">Сумма</th>
+                                                <th>Статус</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="transactionsTableBody">
+                                            <tr>
+                                                <td colspan="7" class="text-center text-secondary">
+                                                    <div class="spinner-border spinner-border-sm me-2"></div>
+                                                    Загрузка операций...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer footer-transparent d-print-none">
+            <div class="container-xl">
+                <div class="row text-center align-items-center">
+                    <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                        <ul class="list-inline list-inline-dots mb-0">
+                            <li class="list-inline-item">
+                                &copy; 2025 ФинансФактор. Факторинговая платформа.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Tabler JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+    <script src="/js/navigation.js"></script>
+
+    <script>
+        const API_BASE_URL = '/api';
+        let accessToken = null;
+
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            accessToken = localStorage.getItem('accessToken');
+
+            if (!accessToken) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            loadUserProfile();
+        });
+
+        async function loadUserProfile() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 401) {
+                    // Token expired or invalid
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Failed to load profile');
+                }
+
+                const data = await response.json();
+                displayUserProfile(data);
+
+                // Load banking data (Stage 6)
+                await loadCompanyAccounts();
+                await loadTransactionHistory();
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showError('Не удалось загрузить профиль. Попробуйте обновить страницу.');
+            }
+        }
+
+        function displayUserProfile(data) {
+            // Debug logging
+            console.log('User data received:', data);
+            console.log('Permissions:', data.permissions);
+
+            // Set company type as data attribute for styling
+            document.body.setAttribute('data-company-type', data.company?.type || '');
+
+            // User information
+            const fullName = `${data.firstName} ${data.lastName}`;
+            document.getElementById('userName').textContent = fullName;
+            document.getElementById('userEmail').textContent = data.email;
+            document.getElementById('userPhone').textContent = data.phone || '—';
+
+            // Display company with type badge
+            const companyTypeLabel = getCompanyTypeLabel(data.company?.type);
+            const companyTypeBadge = `<span class="badge ${getCompanyTypeBadgeClass(data.company?.type)} company-type-badge">${companyTypeLabel}</span>`;
+            document.getElementById('userCompany').innerHTML = (data.company?.name || '—') + companyTypeBadge;
+
+
+
+            // Last login
+            if (data.lastLoginAt) {
+                const loginDate = new Date(data.lastLoginAt);
+                document.getElementById('lastLogin').textContent = loginDate.toLocaleString('ru-RU');
+            }
+
+            // Roles
+            if (data.roles && data.roles.length > 0) {
+                const rolesHtml = data.roles.map(role => {
+                    const roleClass = getRoleClass(role);
+                    const roleLabel = getRoleLabel(role);
+                    return `<span class="badge badge-role ${roleClass}">${roleLabel}</span>`;
+                }).join(' ');
+                document.getElementById('userRoles').innerHTML = rolesHtml;
+            } else {
+                document.getElementById('userRoles').innerHTML = '<span class="text-secondary">Нет назначенных ролей</span>';
+            }
+
+            // Permissions
+            if (data.permissions && data.permissions.length > 0) {
+                const permissionsHtml = data.permissions.map(permission => {
+                    return `<span class="badge bg-azure-lt text-azure permission-badge">${getPermissionLabel(permission)}</span>`;
+                }).join(' ');
+                document.getElementById('userPermissions').innerHTML = permissionsHtml;
+            } else {
+                // Show appropriate message based on role
+                const hasSpecialRoles = data.roles && data.roles.some(r => r !== 'ROLE_USER');
+                if (hasSpecialRoles) {
+                    document.getElementById('userPermissions').innerHTML = '<span class="text-secondary">Нет дополнительных прав</span>';
+                } else {
+                    document.getElementById('userPermissions').innerHTML = '<span class="text-muted">Базовый доступ</span>';
+                }
+            }
+        }
+
+        function getRoleClass(role) {
+            const roleClasses = {
+                'ROLE_ADMIN': 'bg-red-lt text-red',
+                'ROLE_MANAGER': 'bg-blue-lt text-blue',
+                'ROLE_ACCOUNTANT': 'bg-green-lt text-green',
+                'ROLE_USER': 'bg-secondary-lt text-secondary'
+            };
+            return roleClasses[role] || 'bg-secondary-lt text-secondary';
+        }
+
+        function getRoleLabel(role) {
+            const roleLabels = {
+                'ROLE_ADMIN': 'Администратор',
+                'ROLE_MANAGER': 'Менеджер',
+                'ROLE_ACCOUNTANT': 'Бухгалтер',
+                'ROLE_USER': 'Пользователь'
+            };
+            return roleLabels[role] || role;
+        }
+
+        function getPermissionLabel(permission) {
+            const labels = {
+                'CREATE_USER': 'Создание пользователей',
+                'EDIT_USER': 'Редактирование пользователей',
+                'DELETE_USER': 'Удаление пользователей',
+                'VIEW_USERS': 'Просмотр пользователей',
+                'BLOCK_USER': 'Блокировка пользователей',
+                'CREATE_COMPANY': 'Создание компаний',
+                'EDIT_COMPANY': 'Редактирование компаний',
+                'DELETE_COMPANY': 'Удаление компаний',
+                'VIEW_COMPANIES': 'Просмотр компаний',
+                'MANAGE_ROLES': 'Управление ролями',
+                'ASSIGN_ROLES': 'Назначение ролей',
+                'VIEW_TRANSACTIONS': 'Просмотр транзакций',
+                'CREATE_TRANSACTION': 'Создание транзакций',
+                'APPROVE_TRANSACTION': 'Одобрение транзакций',
+                'CANCEL_TRANSACTION': 'Отмена транзакций',
+                'VIEW_REPORTS': 'Просмотр отчетов',
+                'EXPORT_REPORTS': 'Экспорт отчетов'
+            };
+            return labels[permission] || permission;
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('alertError');
+            document.getElementById('errorMessage').textContent = message;
+            alert.classList.remove('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // For Stage 6: Load company accounts and transactions
+        // These functions are prepared but not called yet (will be activated in Stage 6)
+        async function loadCompanyAccounts() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/me/accounts`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load accounts');
+                }
+
+                const accounts = await response.json();
+                displayAccounts(accounts || []);
+                document.getElementById('companyAccountsSection').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading accounts:', error);
+                document.getElementById('accountsTableBody').innerHTML =
+                    '<tr><td colspan="5" class="text-center text-secondary">Не удалось загрузить счета</td></tr>';
+            }
+        }
+
+        async function loadTransactionHistory() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/me/transactions?limit=10`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load transactions');
+                }
+
+                const data = await response.json();
+                displayTransactions(data.transactions || []);
+                document.getElementById('transactionHistorySection').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactionsTableBody').innerHTML =
+                    '<tr><td colspan="5" class="text-center text-secondary">Не удалось загрузить историю операций</td></tr>';
+            }
+        }
+
+        function displayAccounts(accounts) {
+            if (!accounts || accounts.length === 0) {
+                document.getElementById('accountsTableBody').innerHTML =
+                    '<tr><td colspan="4" class="text-center text-secondary">Нет счетов</td></tr>';
+                return;
+            }
+
+            const html = accounts.map(account => `
+                <tr>
+                    <td>
+                        <div class="d-flex flex-column">
+                            <strong>${account.name || '—'}</strong>
+                            <small class="text-muted">${account.company?.name || ''}</small>
+                        </div>
+                    </td>
+                    <td><code class="small">${account.id.substring(0, 8)}</code></td>
+                    <td class="text-end"><strong>${account.balanceFormatted}</strong></td>
+                    <td>
+                        <span class="badge bg-success-lt text-success">Активен</span>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('accountsTableBody').innerHTML = html;
+        }
+
+        function displayTransactions(transactions) {
+            if (!transactions || transactions.length === 0) {
+                document.getElementById('transactionsTableBody').innerHTML =
+                    '<tr><td colspan="7" class="text-center text-secondary">Нет операций</td></tr>';
+                return;
+            }
+
+            const html = transactions.map(tx => {
+                // Определяем тип операции и направление
+                const typeLabel = tx.typeLabel || tx.type || '—';
+                const description = tx.description || '—';
+
+                return `
+                <tr>
+                    <td>
+                        <div>${formatDate(tx.executedAt || tx.createdAt)}</div>
+                        <div class="text-secondary small">${formatTime(tx.executedAt || tx.createdAt)}</div>
+                    </td>
+                    <td><code class="small">${tx.id.substring(0, 8)}</code></td>
+                    <td>
+                        <div class="text-truncate" style="max-width: 200px;" title="${description}">
+                            <span class="badge bg-azure-lt">${typeLabel}</span>
+                            <div class="small text-muted">${description}</div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="small">${tx.debitAccount?.name || '—'}</div>
+                        <div class="text-secondary small">${tx.debitAccount?.company || ''}</div>
+                    </td>
+                    <td>
+                        <div class="small">${tx.creditAccount?.name || '—'}</div>
+                        <div class="text-secondary small">${tx.creditAccount?.company || ''}</div>
+                    </td>
+                    <td class="text-end"><strong>${tx.amount?.formatted || formatMoney(tx.amount?.value || 0) + ' ' + (tx.amount?.currency || 'RUB')}</strong></td>
+                    <td><span class="badge ${getStatusClass(tx.status)}">${tx.statusLabel || getStatusLabel(tx.status)}</span></td>
+                </tr>
+            `;
+            }).join('');
+
+            document.getElementById('transactionsTableBody').innerHTML = html;
+        }
+
+        function formatMoney(amount) {
+            return parseFloat(amount).toLocaleString('ru-RU', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function formatTime(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getTransactionTypeLabel(type) {
+            const labels = {
+                'deposit': 'Пополнение',
+                'withdrawal': 'Снятие',
+                'transfer': 'Перевод',
+                'factoring': 'Факторинг',
+                'payment': 'Платеж',
+                'commission': 'Комиссия',
+                'refund': 'Возврат'
+            };
+            return labels[type] || type;
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'pending': 'bg-yellow-lt text-yellow',
+                'processing': 'bg-blue-lt text-blue',
+                'completed': 'bg-success-lt text-success',
+                'failed': 'bg-danger-lt text-danger',
+                'cancelled': 'bg-secondary-lt text-secondary'
+            };
+            return classes[status] || 'bg-secondary-lt text-secondary';
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'pending': 'Ожидает',
+                'processing': 'В обработке',
+                'completed': 'Завершена',
+                'failed': 'Ошибка',
+                'cancelled': 'Отменена'
+            };
+            return labels[status] || status;
+        }
+
+        function getCompanyTypeLabel(type) {
+            const labels = {
+                'factor': 'Факторинговая компания',
+                'supplier': 'Поставщик',
+                'debtor': 'Дебитор'
+            };
+            return labels[type] || type;
+        }
+
+        function getCompanyTypeBadgeClass(type) {
+            const classes = {
+                'factor': 'bg-blue-lt text-blue',
+                'supplier': 'bg-green-lt text-green',
+                'debtor': 'bg-orange-lt text-orange'
+            };
+            return classes[type] || 'bg-secondary-lt text-secondary';
+        }
+    </script>
+</body>
+</html>

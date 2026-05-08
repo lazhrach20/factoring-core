@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - Факторинг Платформа</title>
+
+    <!-- Tabler CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+
+    <style>
+        .page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f6fa;
+        }
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #206bc4;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="container container-tight py-4">
+            <div class="text-center mb-4">
+                <div class="logo-text">
+                    <i class="ti ti-chart-line"></i> ФинансФактор
+                </div>
+            </div>
+
+            <div class="card card-md">
+                <div class="card-body">
+                    <h2 class="h2 text-center mb-4">Регистрация</h2>
+
+                    <!-- Alert Messages -->
+                    <div id="alertSuccess" class="alert alert-success d-none" role="alert">
+                        <div class="d-flex">
+                            <div><i class="ti ti-check icon alert-icon"></i></div>
+                            <div><strong>Успешно!</strong> <span id="successMessage"></span></div>
+                        </div>
+                    </div>
+
+                    <div id="alertError" class="alert alert-danger d-none" role="alert">
+                        <div class="d-flex">
+                            <div><i class="ti ti-alert-circle icon alert-icon"></i></div>
+                            <div><strong>Ошибка!</strong> <span id="errorMessage" style="white-space: pre-line;"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <form id="registerForm" autocomplete="off">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label required">Имя</label>
+                                <input type="text" id="firstName" class="form-control" placeholder="Иван" required>
+                                <div class="invalid-feedback" id="firstName-error"></div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label required">Фамилия</label>
+                                <input type="text" id="lastName" class="form-control" placeholder="Иванов" required>
+                                <div class="invalid-feedback" id="lastName-error"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label required">Email адрес</label>
+                            <input type="email" id="email" class="form-control" placeholder="your@email.com" required>
+                            <div class="invalid-feedback" id="email-error"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label required">Телефон</label>
+                            <input type="tel" id="phone" class="form-control" placeholder="+79161234567" required>
+                            <div class="invalid-feedback" id="phone-error"></div>
+                            <small class="form-hint">Формат: +7XXXXXXXXXX</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label required">Компания</label>
+                            <select id="companyId" class="form-select" required>
+                                <option value="">Выберите компанию...</option>
+                                {% for company in companies %}
+                                    <option value="{{ company.id.toRfc4122() }}">
+                                        {{ company.name }} ({% if company.type == 'factor' %}Фактор{% elseif company.type == 'supplier' %}Поставщик{% elseif company.type == 'debtor' %}Дебитор{% else %}{{ company.type }}{% endif %})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback" id="companyId-error"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label required">Пароль</label>
+                            <div class="input-group input-group-flat">
+                                <input type="password" id="password" class="form-control" placeholder="Минимум 8 символов" required>
+                                <span class="input-group-text">
+                                    <a href="#" class="link-secondary" onclick="togglePassword('password'); return false;">
+                                        <i class="ti ti-eye" id="eyeIcon1"></i>
+                                    </a>
+                                </span>
+                            </div>
+                            <div class="invalid-feedback" id="password-error"></div>
+                            <small class="form-hint">Пароль должен содержать минимум 8 символов, включая заглавную букву, строчную букву и цифру</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label required">Подтверждение пароля</label>
+                            <div class="input-group input-group-flat">
+                                <input type="password" id="passwordConfirm" class="form-control" placeholder="Повторите пароль" required>
+                                <span class="input-group-text">
+                                    <a href="#" class="link-secondary" onclick="togglePassword('passwordConfirm'); return false;">
+                                        <i class="ti ti-eye" id="eyeIcon2"></i>
+                                    </a>
+                                </span>
+                            </div>
+                            <div class="invalid-feedback" id="passwordConfirm-error"></div>
+                        </div>
+
+                        <div class="form-footer">
+                            <button type="submit" id="submitBtn" class="btn btn-primary w-100">
+                                <i class="ti ti-user-plus icon"></i>
+                                Зарегистрироваться
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center text-muted mt-3">
+                        Уже есть аккаунт? <a href="/login.html">Войти</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center text-muted mt-3">
+                <small>© 2025 ФинансФактор. Все права защищены.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabler JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+
+    <script>
+        const form = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const alertSuccess = document.getElementById('alertSuccess');
+        const alertError = document.getElementById('alertError');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                passwordConfirm: document.getElementById('passwordConfirm').value,
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                phone: document.getElementById('phone').value,
+                companyId: document.getElementById('companyId').value,
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Регистрация...';
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    clearFieldErrors();
+                    showSuccess('Регистрация успешна! Перенаправление на страницу входа...');
+                    form.reset();
+
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                } else {
+                    // Обработка ошибок валидации
+                    if (data.violations && data.violations.length > 0) {
+                        clearFieldErrors();
+                        showFieldErrors(data.violations);
+                        showError(data.error || 'Пожалуйста, исправьте ошибки в форме');
+                    } else {
+                        clearFieldErrors();
+                        showError(data.error || 'Ошибка регистрации. Проверьте введенные данные.');
+                    }
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером. Проверьте подключение.');
+                console.error('Registration error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="ti ti-user-plus icon"></i> Зарегистрироваться';
+            }
+        });
+
+        function showSuccess(message) {
+            document.getElementById('successMessage').textContent = message;
+            alertSuccess.classList.remove('d-none');
+            alertError.classList.add('d-none');
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            alertError.classList.remove('d-none');
+            alertSuccess.classList.add('d-none');
+            // Прокручиваем к началу формы чтобы видеть ошибку
+            alertError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function showFieldErrors(violations) {
+            violations.forEach(violation => {
+                const fieldId = violation.field;
+                const field = document.getElementById(fieldId);
+                const errorDiv = document.getElementById(fieldId + '-error');
+
+                if (field && errorDiv) {
+                    field.classList.add('is-invalid');
+                    errorDiv.textContent = violation.message;
+                    errorDiv.style.display = 'block';
+                }
+            });
+        }
+
+        function clearFieldErrors() {
+            // Убираем все подсветки и тексты ошибок
+            const fields = ['firstName', 'lastName', 'email', 'phone', 'companyId', 'password', 'passwordConfirm'];
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const errorDiv = document.getElementById(fieldId + '-error');
+
+                if (field) {
+                    field.classList.remove('is-invalid');
+                }
+                if (errorDiv) {
+                    errorDiv.textContent = '';
+                    errorDiv.style.display = 'none';
+                }
+            });
+
+            // Скрываем общее сообщение об ошибке
+            alertError.classList.add('d-none');
+        }
+
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const eyeIcon = document.getElementById(fieldId === 'password' ? 'eyeIcon1' : 'eyeIcon2');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('ti-eye');
+                eyeIcon.classList.add('ti-eye-off');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('ti-eye-off');
+                eyeIcon.classList.add('ti-eye');
+            }
+        }
+    </script>
+</body>
+</html>

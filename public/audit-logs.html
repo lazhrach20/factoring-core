@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Журнал аудита - Факторинг Платформа</title>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+    <style>
+        .status-badge { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+        .status-success { background-color: #d4edda; color: #155724; }
+        .status-error { background-color: #f8d7da; color: #721c24; }
+        .status-warning { background-color: #fff3cd; color: #856404; }
+        .payload-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+        .method-badge { font-size: 0.7rem; font-weight: bold; padding: 0.2rem 0.4rem; border-radius: 0.25rem; }
+        .method-GET { background-color: #e3f2fd; color: #1976d2; }
+        .method-POST { background-color: #e8f5e9; color: #388e3c; }
+        .method-PUT { background-color: #fff3e0; color: #f57c00; }
+        .method-DELETE { background-color: #ffebee; color: #d32f2f; }
+    </style>
+</head>
+<body>
+    <div id="navigation-container"></div>
+
+    <div class="page-wrapper">
+        <div class="page-header d-print-none">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <h2 class="page-title"><i class="ti ti-file-text me-2"></i>Журнал аудита</h2>
+                        <div class="text-muted mt-1">Логи всех действий пользователей в системе</div>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                            <i class="ti ti-filter me-1"></i>Фильтры
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-body">
+            <div class="container-xl">
+                <div id="alertError" class="alert alert-danger d-none"></div>
+                <div id="alertAccessDenied" class="alert alert-warning d-none">
+                    <h4 class="alert-title"><i class="ti ti-lock me-2"></i>Доступ запрещён</h4>
+                    <p>У вас нет прав для просмотра журнала аудита. Доступ имеют только администраторы и аудиторы.</p>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row row-cards mb-3" id="statsCards" style="display:none;">
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Всего записей</div>
+                                </div>
+                                <div class="h1 mb-0" id="statTotal">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Успешных</div>
+                                </div>
+                                <div class="h1 mb-0 text-success" id="statSuccess">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="subheader">Ошибок</div>
+                                </div>
+                                <div class="h1 mb-0 text-danger" id="statErrors">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters Panel -->
+                <div class="collapse mb-3" id="filtersPanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label">Дата от</label>
+                                    <input type="date" class="form-control" id="filterStartDate">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Дата до</label>
+                                    <input type="date" class="form-control" id="filterEndDate">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Действие</label>
+                                    <input type="text" class="form-control" id="filterAction" placeholder="create, update, delete...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">HTTP метод</label>
+                                    <select class="form-select" id="filterHttpMethod">
+                                        <option value="">Все</option>
+                                        <option value="GET">GET</option>
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                        <option value="DELETE">DELETE</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Статус</label>
+                                    <select class="form-select" id="filterStatusCode">
+                                        <option value="">Все</option>
+                                        <option value="200">200 (OK)</option>
+                                        <option value="201">201 (Created)</option>
+                                        <option value="error">Ошибки (4xx, 5xx)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-9">
+                                    <label class="form-label">&nbsp;</label>
+                                    <div>
+                                        <button class="btn btn-primary" onclick="applyFilters()">
+                                            <i class="ti ti-search me-1"></i>Применить
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="resetFilters()">
+                                            <i class="ti ti-x me-1"></i>Сбросить
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audit Logs Table -->
+                <div class="card" id="logsCard" style="display:none;">
+                    <div class="card-header">
+                        <h3 class="card-title">Записи журнала</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-vcenter table-hover">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 140px;">Дата/Время</th>
+                                        <th>Пользователь</th>
+                                        <th style="width: 80px;">Метод</th>
+                                        <th>Действие</th>
+                                        <th>URI</th>
+                                        <th style="width: 80px;">Статус</th>
+                                        <th style="width: 120px;">IP</th>
+                                        <th style="width: 50px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="logsTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center">
+                                            <div class="spinner-border spinner-border-sm me-2"></div>Загрузка...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex align-items-center">
+                        <p class="m-0 text-muted">Показано <span id="showingCount">0</span> из <span id="totalCount">0</span> записей</p>
+                        <ul class="pagination m-0 ms-auto" id="pagination"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Детали записи аудита</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detailsModalBody">
+                    <div class="spinner-border spinner-border-sm"></div> Загрузка...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script>
+        const API_BASE_URL = '/api';
+        const accessToken = localStorage.getItem('accessToken');
+
+        let currentPage = 1;
+        let totalPages = 1;
+
+        if (!accessToken) {
+            window.location.href = '/login.html';
+        }
+
+        // Load audit logs
+        async function loadAuditLogs(page = 1) {
+            try {
+                const filters = getFilters();
+                const queryParams = new URLSearchParams({ page, limit: 20, ...filters });
+
+                const response = await fetch(`${API_BASE_URL}/audit-logs?${queryParams}`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (response.status === 403) {
+                    showAccessDenied();
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки логов');
+                }
+
+                const data = await response.json();
+
+                hideAccessDenied();
+                document.getElementById('logsCard').style.display = 'block';
+                document.getElementById('statsCards').style.display = 'flex';
+
+                displayLogs(data.logs);
+                updatePagination(data.page, data.totalPages, data.total);
+
+                currentPage = data.page;
+                totalPages = data.totalPages;
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Не удалось загрузить логи аудита: ' + error.message);
+            }
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const filters = getFilters();
+                const queryParams = new URLSearchParams(filters);
+
+                const response = await fetch(`${API_BASE_URL}/audit-logs/stats?${queryParams}`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('statTotal').textContent = data.total;
+                    document.getElementById('statSuccess').textContent = data.success;
+                    document.getElementById('statErrors').textContent = data.errors;
+                }
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
+        }
+
+        function displayLogs(logs) {
+            const tbody = document.getElementById('logsTableBody');
+
+            if (logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">Нет записей</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = logs.map(log => {
+                const statusClass = log.statusCode < 400 ? 'status-success' : 'status-error';
+                const methodClass = `method-${log.httpMethod}`;
+
+                return `
+                    <tr>
+                        <td><small>${formatDateTime(log.createdAt)}</small></td>
+                        <td>${log.user ? `<div>${log.user.firstName} ${log.user.lastName}</div><small class="text-muted">${log.user.email}</small>` : '<span class="text-muted">Система</span>'}</td>
+                        <td><span class="method-badge ${methodClass}">${log.httpMethod}</span></td>
+                        <td><small>${log.action}</small></td>
+                        <td><small class="text-muted">${log.requestUri}</small></td>
+                        <td><span class="badge status-badge ${statusClass}">${log.statusCode || 'N/A'}</span></td>
+                        <td><small class="text-muted">${log.ipAddress || 'N/A'}</small></td>
+                        <td>
+                            <button class="btn btn-sm btn-ghost-secondary" onclick="showDetails('${log.id}')" title="Подробнее">
+                                <i class="ti ti-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updatePagination(page, totalPages, total) {
+            document.getElementById('showingCount').textContent = total > 0 ? ((page - 1) * 20 + 1) + '-' + Math.min(page * 20, total) : 0;
+            document.getElementById('totalCount').textContent = total;
+
+            const pagination = document.getElementById('pagination');
+
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+
+            // Previous button
+            html += `<li class="page-item ${page === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="loadAuditLogs(${page - 1}); return false;">Назад</a>
+            </li>`;
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+                    html += `<li class="page-item ${i === page ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="loadAuditLogs(${i}); return false;">${i}</a>
+                    </li>`;
+                } else if (i === page - 3 || i === page + 3) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+            }
+
+            // Next button
+            html += `<li class="page-item ${page === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="loadAuditLogs(${page + 1}); return false;">Вперёд</a>
+            </li>`;
+
+            pagination.innerHTML = html;
+        }
+
+        async function showDetails(logId) {
+            const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+            const modalBody = document.getElementById('detailsModalBody');
+
+            modalBody.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Загрузка...';
+            modal.show();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/audit-logs/${logId}`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+
+                if (!response.ok) throw new Error('Ошибка загрузки деталей');
+
+                const log = await response.json();
+
+                modalBody.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-12"><strong>ID:</strong> ${log.id}</div>
+                        <div class="col-12"><strong>Дата/Время:</strong> ${formatDateTime(log.createdAt)}</div>
+                        <div class="col-12"><strong>Пользователь:</strong> ${log.user ? `${log.user.firstName} ${log.user.lastName} (${log.user.email})` : 'Система'}</div>
+                        ${log.user ? `<div class="col-12"><strong>Компания:</strong> ${log.user.company.name} (${log.user.company.type})</div>` : ''}
+                        <div class="col-6"><strong>HTTP Метод:</strong> <span class="method-badge method-${log.httpMethod}">${log.httpMethod}</span></div>
+                        <div class="col-6"><strong>Статус:</strong> <span class="badge ${log.statusCode < 400 ? 'bg-success' : 'bg-danger'}">${log.statusCode || 'N/A'}</span></div>
+                        <div class="col-12"><strong>Действие:</strong> ${log.action}</div>
+                        <div class="col-12"><strong>URI:</strong> <code>${log.requestUri}</code></div>
+                        ${log.entityType ? `<div class="col-6"><strong>Тип сущности:</strong> ${log.entityType}</div>` : ''}
+                        ${log.entityId ? `<div class="col-6"><strong>ID сущности:</strong> ${log.entityId}</div>` : ''}
+                        <div class="col-6"><strong>IP адрес:</strong> ${log.ipAddress || 'N/A'}</div>
+                        <div class="col-6"><strong>User Agent:</strong> <small>${log.userAgent || 'N/A'}</small></div>
+                        ${log.errorMessage ? `<div class="col-12"><strong>Ошибка:</strong> <div class="alert alert-danger mb-0">${log.errorMessage}</div></div>` : ''}
+                        ${log.payload ? `<div class="col-12"><strong>Данные запроса:</strong><pre class="bg-light p-2 rounded"><code>${JSON.stringify(log.payload, null, 2)}</code></pre></div>` : ''}
+                    </div>
+                `;
+            } catch (error) {
+                modalBody.innerHTML = `<div class="alert alert-danger">Ошибка загрузки деталей: ${error.message}</div>`;
+            }
+        }
+
+        function getFilters() {
+            const filters = {};
+
+            const startDate = document.getElementById('filterStartDate').value;
+            if (startDate) filters.startDate = startDate;
+
+            const endDate = document.getElementById('filterEndDate').value;
+            if (endDate) filters.endDate = endDate;
+
+            const action = document.getElementById('filterAction').value.trim();
+            if (action) filters.action = action;
+
+            const httpMethod = document.getElementById('filterHttpMethod').value;
+            if (httpMethod) filters.httpMethod = httpMethod;
+
+            const statusCode = document.getElementById('filterStatusCode').value;
+            if (statusCode) filters.statusCode = statusCode;
+
+            return filters;
+        }
+
+        function applyFilters() {
+            currentPage = 1;
+            loadAuditLogs(1);
+            loadStats();
+        }
+
+        function resetFilters() {
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            document.getElementById('filterAction').value = '';
+            document.getElementById('filterHttpMethod').value = '';
+            document.getElementById('filterStatusCode').value = '';
+            applyFilters();
+        }
+
+        function formatDateTime(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function showAccessDenied() {
+            document.getElementById('alertAccessDenied').classList.remove('d-none');
+            document.getElementById('logsCard').style.display = 'none';
+            document.getElementById('statsCards').style.display = 'none';
+        }
+
+        function hideAccessDenied() {
+            document.getElementById('alertAccessDenied').classList.add('d-none');
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('alertError');
+            alert.textContent = message;
+            alert.classList.remove('d-none');
+            setTimeout(() => alert.classList.add('d-none'), 5000);
+        }
+
+        // Initial load
+        loadAuditLogs();
+        loadStats();
+    </script>
+</body>
+</html>

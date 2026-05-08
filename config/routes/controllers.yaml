@@ -1,0 +1,19 @@
+# config/routes/controllers.yaml
+# yaml-language-server: $schema=../../vendor/symfony/routing/Loader/schema/routing.schema.json
+
+# Import all controllers from src/ (excluding dev-only controllers)
+controllers:
+    resource:
+        path: ../../src/
+        namespace: App
+        exclude:
+            - ../../src/Controller/Dev/
+    type: attribute
+
+# Dev-only test/debug controllers (not loaded in prod/test environments)
+when@dev:
+    dev_controllers:
+        resource:
+            path: ../../src/Controller/Dev/
+            namespace: App\Controller\Dev
+        type: attribute

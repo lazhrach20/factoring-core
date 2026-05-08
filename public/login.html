@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Факторинг Платформа</title>
+
+    <!-- Tabler CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+
+    <style>
+        .page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f6fa;
+        }
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #206bc4;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="container container-tight py-4">
+            <div class="text-center mb-4">
+                <div class="logo-text">
+                    <i class="ti ti-chart-line"></i> ФинансФактор
+                </div>
+            </div>
+
+            <div class="card card-md">
+                <div class="card-body">
+                    <h2 class="h2 text-center mb-4">Вход в систему</h2>
+
+                    <!-- Alert Messages -->
+                    <div id="alertSuccess" class="alert alert-success d-none" role="alert">
+                        <div class="d-flex">
+                            <div><i class="ti ti-check icon alert-icon"></i></div>
+                            <div><strong>Успешно!</strong> <span id="successMessage"></span></div>
+                        </div>
+                    </div>
+
+                    <div id="alertError" class="alert alert-danger d-none" role="alert">
+                        <div class="d-flex">
+                            <div><i class="ti ti-alert-circle icon alert-icon"></i></div>
+                            <div><strong>Ошибка!</strong> <span id="errorMessage"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form id="loginForm" autocomplete="off">
+                        <div class="mb-3">
+                            <label class="form-label">Email адрес</label>
+                            <input type="email" id="email" class="form-control" placeholder="your@email.com" autocomplete="off" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Пароль</label>
+                            <div class="input-group input-group-flat">
+                                <input type="password" id="password" class="form-control" placeholder="Ваш пароль" autocomplete="off" required>
+                                <span class="input-group-text">
+                                    <a href="#" class="link-secondary" title="Показать пароль" data-bs-toggle="tooltip" onclick="togglePassword(); return false;">
+                                        <i class="ti ti-eye" id="eyeIcon"></i>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="form-footer">
+                            <button type="submit" id="submitBtn" class="btn btn-primary w-100">
+                                <i class="ti ti-login icon"></i>
+                                Войти
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="hr-text">или</div>
+
+                    <div class="text-center">
+                        <a href="register.html" class="btn btn-outline-primary w-100 mb-2">
+                            <i class="ti ti-user-plus icon"></i>
+                            Создать новый аккаунт
+                        </a>
+                        <a href="reset-password.html" class="btn btn-link w-100">
+                            Забыли пароль?
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Demo Credentials Card -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <i class="ti ti-test-pipe icon text-yellow"></i>
+                        Demo accounts
+                        <span class="badge bg-yellow-lt ms-2">Demo</span>
+                    </h3>
+                    <div class="divide-y small">
+                        <div class="row py-2 align-items-center">
+                            <div class="col-auto">
+                                <span class="badge bg-blue-lt text-blue">Фактор / Admin</span>
+                            </div>
+                            <div class="col text-muted">
+                                <code>admin@finansfactor.ru</code> / <code>admin123</code>
+                            </div>
+                        </div>
+                        <div class="row py-2 align-items-center">
+                            <div class="col-auto">
+                                <span class="badge bg-blue-lt text-blue">Фактор / Бухгалтер</span>
+                            </div>
+                            <div class="col text-muted">
+                                <code>accountant@finansfactor.ru</code> / <code>accountant123</code>
+                            </div>
+                        </div>
+                        <div class="row py-2 align-items-center">
+                            <div class="col-auto">
+                                <span class="badge bg-green-lt text-green">Поставщик</span>
+                            </div>
+                            <div class="col text-muted">
+                                <code>owner@supplier.ru</code> / <code>supplier123</code>
+                            </div>
+                        </div>
+                        <div class="row py-2 align-items-center">
+                            <div class="col-auto">
+                                <span class="badge bg-red-lt text-red">Дебитор</span>
+                            </div>
+                            <div class="col text-muted">
+                                <code>finance@debtor.ru</code> / <code>debtor123</code>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-muted mt-2 mb-0" style="font-size:0.75rem;">
+                        Загрузите тестовые данные командой: <code>php bin/console doctrine:fixtures:load</code>
+                    </p>
+                </div>
+            </div>
+
+            <div class="text-center text-muted mt-3">
+                <small>© 2025 ФинансФактор. Все права защищены.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabler JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const alertSuccess = document.getElementById('alertSuccess');
+        const alertError = document.getElementById('alertError');
+
+        // Check if already logged in - redirect to profile or saved URL
+        if (localStorage.getItem('accessToken')) {
+            const redirectUrl = localStorage.getItem('redirect_after_login');
+            if (redirectUrl) {
+                localStorage.removeItem('redirect_after_login');
+                window.location.href = redirectUrl;
+            } else {
+                window.location.href = 'profile.html';
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Вход...';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save tokens (используем jwt_token для совместимости)
+                    localStorage.setItem('accessToken', data.accessToken);
+                    localStorage.setItem('jwt_token', data.accessToken); // Для совместимости с другими страницами
+                    if (data.refreshToken) {
+                        localStorage.setItem('refreshToken', data.refreshToken);
+                    }
+
+                    // Проверяем, есть ли сохраненный URL для редиректа
+                    const redirectUrl = localStorage.getItem('redirect_after_login');
+                    if (redirectUrl) {
+                        localStorage.removeItem('redirect_after_login');
+                        window.location.href = redirectUrl;
+                    } else {
+                        // Redirect to profile page
+                        window.location.href = 'profile.html';
+                    }
+                } else {
+                    showError(data.error || data.message || 'Ошибка входа. Проверьте email и пароль.');
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером. Проверьте подключение.');
+                console.error('Login error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="ti ti-login icon"></i> Войти';
+            }
+        });
+
+        function showSuccess(message) {
+            document.getElementById('successMessage').textContent = message;
+            alertSuccess.classList.remove('d-none');
+            alertError.classList.add('d-none');
+
+            setTimeout(() => {
+                alertSuccess.classList.add('d-none');
+            }, 5000);
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            alertError.classList.remove('d-none');
+            alertSuccess.classList.add('d-none');
+
+            setTimeout(() => {
+                alertError.classList.add('d-none');
+            }, 5000);
+        }
+
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('ti-eye');
+                eyeIcon.classList.add('ti-eye-off');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('ti-eye-off');
+                eyeIcon.classList.add('ti-eye');
+            }
+        }
+    </script>
+</body>
+</html>

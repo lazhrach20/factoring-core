@@ -1,0 +1,24 @@
+framework:
+    messenger:
+        failure_transport: failed
+
+        transports:
+            # RabbitMQ transport for async messages
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    auto_setup: true
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+                    max_delay: 0
+
+            # Failed messages in RabbitMQ
+            failed: '%env(MESSENGER_TRANSPORT_DSN)%'
+
+        routing:
+            # Banking operations - processed asynchronously
+            'App\Banking\Message\ProcessDepositMessage': async
+            'App\Banking\Message\ProcessTransferMessage': async
+            'App\Banking\Message\ProcessWithdrawalMessage': async

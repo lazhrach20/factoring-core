@@ -1,0 +1,63 @@
+services:
+  # 1. Наше PHP приложение
+  php:
+    build: .
+    volumes:
+      - .:/var/www/html
+    networks:
+      - app_net
+
+  # 2. Веб-сервер Nginx (чтобы принимать HTTP запросы)
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80" # Сайт будет доступен на localhost:8080
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - app_net
+
+  # 3. База данных PostgreSQL
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: factoring
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+    ports:
+      - "5432:5432" # Чтобы ты мог подключиться через DBeaver из Windows
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app_net
+
+  # 4. RabbitMQ (Очереди)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-user}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-secret}
+    ports:
+      - "5672:5672"   # Протокол AMQP
+      - "15672:15672" # Админка (Web UI)
+    networks:
+      - app_net
+
+  # 5. Redis (Кеш и локи)
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app_net
+
+# Тома для сохранения данных БД при перезапуске контейнеров
+volumes:
+  db_data:
+
+# Внутренняя сеть
+networks:
+  app_net:

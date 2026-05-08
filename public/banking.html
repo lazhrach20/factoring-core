@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Банковские счета и переводы - ФинансФактор</title>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
+    <style>
+        .account-card { cursor: pointer; transition: all 0.2s; }
+        .account-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .account-card.selected { border: 2px solid #206bc4; }
+        .balance { font-size: 1.5rem; font-weight: bold; }
+        .company-badge { margin-left: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Navigation Component -->
+        <div id="navigation-container"></div>
+
+        <div class="page-wrapper">
+            <div class="page-header d-print-none">
+                <div class="container-xl">
+                    <div class="row g-2 align-items-center">
+                        <div class="col">
+                            <h2 class="page-title">Банковские счета и переводы</h2>
+                            <div class="text-muted mt-1">Управление счетами и переводы денежных средств</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-body">
+                <div class="container-xl">
+                    <!-- Счета пользователя -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Мои счета</h3>
+                                    <div class="ms-auto">
+                                        <button class="btn btn-primary" onclick="loadAccounts()">
+                                            <i class="ti ti-refresh"></i> Обновить
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="accountsContainer" class="row row-cards">
+                                        <div class="col-12 text-center py-4">
+                                            <div class="spinner-border text-primary" role="status"></div>
+                                            <div class="mt-2">Загрузка счетов...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Форма пополнения -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Пополнить счет</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info mb-3">
+                                        <i class="ti ti-info-circle"></i>
+                                        Пока что это формальное зачисление для тестирования. В будущем это будет реальный перевод из банка.
+                                    </div>
+                                    <form id="depositForm" onsubmit="submitDeposit(event)">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label required">Счет для пополнения</label>
+                                                <select class="form-select" id="accountId" required>
+                                                    <option value="">Выберите счет...</option>
+                                                </select>
+                                                <small class="form-hint">Выберите счет, на который будут зачислены средства</small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label required">Сумма (в рублях)</label>
+                                                <div class="input-group">
+                                                    <input type="number" class="form-control" id="amount" min="0.01" step="0.01" placeholder="1000.00" required>
+                                                    <span class="input-group-text">₽</span>
+                                                </div>
+                                                <small class="form-hint">Введите сумму пополнения в рублях (например: 1000.00)</small>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-3">
+                                            <div class="col-12">
+                                                <label class="form-label">Комментарий</label>
+                                                <input type="text" class="form-control" id="description" placeholder="Пополнение баланса для тестирования">
+                                                <small class="form-hint">Опционально: добавьте комментарий к пополнению</small>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="ti ti-plus"></i> Пополнить счет
+                                                </button>
+                                                <button type="button" class="btn btn-link" onclick="document.getElementById('depositForm').reset()">
+                                                    Очистить
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <div id="depositResult" class="mt-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- История переводов из Audit Log -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">История операций</h3>
+                                    <div class="ms-auto">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="loadTransferHistory()">
+                                            <i class="ti ti-refresh"></i> Обновить
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-vcenter card-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Дата</th>
+                                                    <th>Действие</th>
+                                                    <th>Статус</th>
+                                                    <th>Сумма</th>
+                                                    <th>Детали</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="transferHistoryTable">
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-4">
+                                                        <div class="spinner-border text-primary" role="status"></div>
+                                                        <div class="mt-2">Загрузка истории...</div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно с деталями счета -->
+    <div class="modal fade" id="accountDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Детали счета</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="accountDetailsContent">
+                    <!-- Контент загружается динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script>
+        const API_URL = '/api';
+        let currentUser = null;
+        let accounts = [];
+
+        // Проверка авторизации
+        function checkAuth() {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                window.location.href = '/login.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Загрузка счетов
+        async function loadAccounts() {
+            const container = document.getElementById('accountsContainer');
+            const accountSelect = document.getElementById('accountId');
+
+            container.innerHTML = '<div class="col-12 text-center py-4"><div class="spinner-border text-primary"></div><div class="mt-2">Загрузка счетов...</div></div>';
+            accountSelect.innerHTML = '<option value="">Выберите счет...</option>';
+
+            try {
+                const response = await fetch(`${API_URL}/users/me/accounts`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+
+                if (response.ok) {
+                    accounts = await response.json();
+
+                    if (accounts.length === 0) {
+                        container.innerHTML = `
+                            <div class="col-12">
+                                <div class="empty">
+                                    <div class="empty-icon">
+                                        <i class="ti ti-wallet"></i>
+                                    </div>
+                                    <p class="empty-title">Нет доступных счетов</p>
+                                    <p class="empty-subtitle text-muted">У вас пока нет банковских счетов</p>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = accounts.map(account => `
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card account-card" onclick="selectAccount('${account.id}')">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="flex-fill">
+                                                <h3 class="card-title mb-1">${account.name}</h3>
+                                                <small class="text-muted">${account.currency}</small>
+                                                ${account.company ? `<span class="badge bg-azure-lt company-badge">${account.company.name}</span>` : ''}
+                                            </div>
+                                            <div class="ms-auto">
+                                                <span class="avatar bg-blue-lt">
+                                                    <i class="ti ti-wallet"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="balance text-primary">${formatMoney(account.balance)} ₽</div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">ID: ${account.id}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        // Добавляем счета в select
+                        accounts.forEach(account => {
+                            const option = document.createElement('option');
+                            option.value = account.id;
+                            option.textContent = `${account.name} (${formatMoney(account.balance)} ₽)`;
+                            accountSelect.appendChild(option);
+                        });
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                <i class="ti ti-alert-circle"></i>
+                                Ошибка загрузки счетов: ${response.status}
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger">
+                            <i class="ti ti-alert-circle"></i>
+                            Ошибка подключения к серверу
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Выбор счета
+        function selectAccount(accountId) {
+            document.getElementById('accountId').value = accountId;
+        }
+
+        // Отправка пополнения
+        async function submitDeposit(event) {
+            event.preventDefault();
+
+            const accountId = document.getElementById('accountId').value;
+            const amountRubles = parseFloat(document.getElementById('amount').value);
+            const description = document.getElementById('description').value || 'Пополнение баланса';
+            const resultDiv = document.getElementById('depositResult');
+
+            resultDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <div class="d-flex">
+                        <div class="spinner-border spinner-border-sm me-2"></div>
+                        <div>Отправка запроса...</div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_URL}/v2/transactions/deposit`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        accountId: accountId,
+                        amount: amountRubles,
+                        description: description
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok || response.status === 202) {
+                    // Транзакция принята в обработку
+                    const transactionId = data.transaction.id;
+
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <h4 class="alert-title">
+                                <div class="spinner-border spinner-border-sm me-2"></div>
+                                Обработка пополнения...
+                            </h4>
+                            <div class="text-muted">Транзакция обрабатывается</div>
+                            <div class="mt-2">
+                                <small><b>ID транзакции:</b> ${transactionId}</small>
+                            </div>
+                        </div>
+                    `;
+
+                    // Очищаем форму
+                    document.getElementById('depositForm').reset();
+
+                    // Начинаем опрашивать статус
+                    pollTransactionStatus(transactionId, resultDiv);
+                } else if (response.status === 403) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4 class="alert-title">
+                                <i class="ti ti-alert-circle"></i> Доступ запрещен
+                            </h4>
+                            <div class="text-muted">${data.error || data.message}</div>
+                        </div>
+                    `;
+                } else if (response.status === 422) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <h4 class="alert-title">
+                                <i class="ti ti-alert-triangle"></i> Ошибка валидации
+                            </h4>
+                            <div class="text-muted">${data.error || data.message}</div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4 class="alert-title">
+                                <i class="ti ti-alert-circle"></i> Ошибка
+                            </h4>
+                            <div class="text-muted">${data.error || data.message || 'Неизвестная ошибка'}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <h4 class="alert-title">
+                            <i class="ti ti-alert-circle"></i> Ошибка подключения
+                        </h4>
+                        <div class="text-muted">Не удалось подключиться к серверу</div>
+                `;
+            }
+        }
+
+        // Опрос статуса транзакции
+        async function pollTransactionStatus(transactionId, resultDiv) {
+            const maxAttempts = 30; // Максимум 30 попыток (1 минута)
+            const pollInterval = 2000; // Опрос каждые 2 секунды
+            let attempts = 0;
+
+            const poll = async () => {
+                attempts++;
+
+                try {
+                    const response = await fetch(`${API_URL}/v2/transactions/${transactionId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch transaction status');
+                    }
+
+                    const data = await response.json();
+                    const transaction = data.transaction;
+                    const status = transaction.status;
+
+                    if (status === 'completed') {
+                        // Транзакция успешно завершена
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-success">
+                                <h4 class="alert-title">
+                                    <i class="ti ti-check"></i> Счет успешно пополнен
+                                </h4>
+                                <div class="text-muted">Средства зачислены на счет</div>
+                                <div class="mt-2">
+                                    <small><b>ID транзакции:</b> ${transaction.id}</small><br>
+                                    <small><b>Счет:</b> ${transaction.creditAccount.name}</small><br>
+                                    <small><b>Сумма:</b> ${transaction.amount.formatted}</small>
+                                </div>
+                            </div>
+                        `;
+
+                        // Обновляем счета и историю
+                        setTimeout(() => {
+                            loadAccounts();
+                            loadTransferHistory();
+                        }, 1000);
+
+                    } else if (status === 'failed') {
+                        // Транзакция завершилась с ошибкой
+                        const failureReason = transaction.failureReason || 'Неизвестная ошибка';
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-danger">
+                                <h4 class="alert-title">
+                                    <i class="ti ti-alert-circle"></i> Ошибка при пополнении
+                                </h4>
+                                <div class="text-muted">${failureReason}</div>
+                                <div class="mt-2">
+                                    <small><b>ID транзакции:</b> ${transaction.id}</small>
+                                </div>
+                            </div>
+                        `;
+
+                        // Обновляем историю, чтобы показать ошибку
+                        setTimeout(() => {
+                            loadTransferHistory();
+                        }, 1000);
+
+                    } else if (status === 'pending' || status === 'processing') {
+                        // Транзакция еще обрабатывается
+                        if (attempts < maxAttempts) {
+                            // Продолжаем опрос
+                            setTimeout(poll, pollInterval);
+                        } else {
+                            // Превышен лимит попыток
+                            resultDiv.innerHTML = `
+                                <div class="alert alert-warning">
+                                    <h4 class="alert-title">
+                                        <i class="ti ti-clock"></i> Обработка занимает больше времени
+                                    </h4>
+                                    <div class="text-muted">Транзакция все еще обрабатывается. Проверьте историю операций через несколько минут.</div>
+                                    <div class="mt-2">
+                                        <small><b>ID транзакции:</b> ${transaction.id}</small><br>
+                                        <small><b>Статус:</b> ${transaction.statusLabel}</small>
+                                    </div>
+                                </div>
+                            `;
+
+                            // Обновляем историю
+                            loadTransferHistory();
+                        }
+                    } else {
+                        // Неизвестный статус
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-warning">
+                                <h4 class="alert-title">
+                                    <i class="ti ti-info-circle"></i> Неизвестный статус
+                                </h4>
+                                <div class="text-muted">Статус транзакции: ${transaction.statusLabel}</div>
+                                <div class="mt-2">
+                                    <small><b>ID транзакции:</b> ${transaction.id}</small>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                } catch (error) {
+                    console.error('Error polling transaction status:', error);
+
+                    if (attempts < maxAttempts) {
+                        // Пробуем еще раз
+                        setTimeout(poll, pollInterval);
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-danger">
+                                <h4 class="alert-title">
+                                    <i class="ti ti-alert-circle"></i> Ошибка проверки статуса
+                                </h4>
+                                <div class="text-muted">Не удалось получить статус транзакции. Проверьте историю операций.</div>
+                            </div>
+                        `;
+                    }
+                }
+            };
+
+            // Начинаем опрос
+            poll();
+        }
+
+        // Загрузка истории транзакций
+        async function loadTransferHistory() {
+            const tableBody = document.getElementById('transferHistoryTable');
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary"></div></td></tr>';
+
+            try {
+                const response = await fetch(`${API_URL}/v2/transactions?limit=100`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const transactions = data.transactions || [];
+
+                    if (transactions.length === 0) {
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <div class="text-muted">История операций пуста</div>
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        tableBody.innerHTML = transactions.map(tx => {
+                            // Определяем направление операции относительно текущего пользователя
+                            const userCompany = currentUser?.company?.name || '';
+                            const isDebit = tx.debitAccount.company === userCompany;
+                            const isCredit = tx.creditAccount.company === userCompany;
+
+                            let direction = '';
+                            let accountInfo = '';
+                            let amountClass = '';
+
+                            if (tx.type === 'deposit') {
+                                direction = 'Пополнение';
+                                accountInfo = tx.creditAccount.name;
+                                amountClass = 'text-success';
+                            } else if (tx.type === 'transfer') {
+                                if (isDebit) {
+                                    direction = 'Перевод на';
+                                    accountInfo = tx.creditAccount.name;
+                                    amountClass = 'text-danger';
+                                } else {
+                                    direction = 'Перевод от';
+                                    accountInfo = tx.debitAccount.name;
+                                    amountClass = 'text-success';
+                                }
+                            } else {
+                                direction = tx.typeLabel;
+                                accountInfo = isDebit ? tx.creditAccount.name : tx.debitAccount.name;
+                            }
+
+                            const statusBadge = tx.status === 'completed'
+                                ? '<span class="badge bg-success text-white"><i class="ti ti-check me-1"></i>Выполнено</span>'
+                                : tx.status === 'pending'
+                                ? '<span class="badge bg-info text-white"><i class="ti ti-clock me-1"></i>Ожидает</span>'
+                                : tx.status === 'processing'
+                                ? '<span class="badge bg-info text-white"><div class="spinner-border spinner-border-sm me-1"></div>Обработка</span>'
+                                : tx.status === 'failed'
+                                ? '<span class="badge bg-danger text-white"><i class="ti ti-alert-circle me-1"></i>Ошибка</span>'
+                                : tx.status === 'reversed'
+                                ? '<span class="badge bg-warning text-dark"><i class="ti ti-arrow-back me-1"></i>Отменено</span>'
+                                : '<span class="badge bg-secondary text-white">' + tx.statusLabel + '</span>';
+
+                            const date = new Date(tx.executedAt).toLocaleString('ru-RU');
+
+                            return `
+                                <tr>
+                                    <td>
+                                        ${date}
+                                        ${tx.description ? '<div class="small text-muted">' + tx.description + '</div>' : ''}
+                                    </td>
+                                    <td>
+                                        <strong>${direction}</strong>
+                                        <div class="small text-muted">${accountInfo}</div>
+                                    </td>
+                                    <td>${statusBadge}</td>
+                                    <td class="text-end ${amountClass}">
+                                        <strong>${tx.amount.formatted}</strong>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-ghost-primary" onclick='showTransactionDetails(${JSON.stringify(tx).replace(/'/g, "&apos;")})'>
+                                            <i class="ti ti-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                } else {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <div class="alert alert-danger">Ошибка загрузки истории</div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <div class="alert alert-danger">Ошибка подключения к серверу</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Показать детали транзакции
+        function showTransactionDetails(tx) {
+            const modalElement = document.getElementById('accountDetailsModal');
+            const content = document.getElementById('accountDetailsContent');
+
+            // Используем data-атрибуты для открытия модального окна
+            modalElement.classList.add('show');
+            modalElement.style.display = 'block';
+            modalElement.setAttribute('aria-modal', 'true');
+            modalElement.setAttribute('role', 'dialog');
+            document.body.classList.add('modal-open');
+
+            // Добавляем backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop fade show';
+            backdrop.id = 'transactionModalBackdrop';
+            document.body.appendChild(backdrop);
+
+            // Закрытие по клику на backdrop или кнопку закрытия
+            const closeModal = () => {
+                modalElement.classList.remove('show');
+                modalElement.style.display = 'none';
+                modalElement.removeAttribute('aria-modal');
+                modalElement.removeAttribute('role');
+                document.body.classList.remove('modal-open');
+                const existingBackdrop = document.getElementById('transactionModalBackdrop');
+                if (existingBackdrop) {
+                    existingBackdrop.remove();
+                }
+            };
+
+            backdrop.addEventListener('click', closeModal);
+            modalElement.querySelector('.btn-close')?.addEventListener('click', closeModal);
+            content.parentElement.parentElement.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
+                btn.addEventListener('click', closeModal);
+            });
+
+            const typeIcons = {
+                'deposit': 'ti-plus',
+                'transfer': 'ti-arrow-right',
+                'withdrawal': 'ti-minus',
+                'payment': 'ti-credit-card',
+                'reversal': 'ti-arrow-back'
+            };
+
+            const icon = typeIcons[tx.type] || 'ti-file';
+
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <h4><i class="ti ${icon}"></i> ${tx.typeLabel}</h4>
+                        ${tx.description ? '<p class="text-muted">' + tx.description + '</p>' : ''}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <strong>ID транзакции:</strong><br>
+                        <code class="small">${tx.id}</code>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <strong>Статус:</strong><br>
+                        <span class="badge ${
+                            tx.status === 'completed' ? 'bg-success' :
+                            tx.status === 'pending' ? 'bg-info' :
+                            tx.status === 'processing' ? 'bg-info' :
+                            tx.status === 'failed' ? 'bg-danger' :
+                            tx.status === 'reversed' ? 'bg-warning' : 'bg-secondary'
+                        }">${tx.statusLabel}</span>
+                        ${tx.status === 'processing' ? '<div class="text-muted small mt-1"><i class="ti ti-clock"></i> Транзакция обрабатывается</div>' : ''}
+                        ${tx.status === 'pending' ? '<div class="text-muted small mt-1"><i class="ti ti-clock"></i> Ожидает обработки</div>' : ''}
+                    </div>
+
+                    ${tx.failureReason ? `
+                        <div class="col-12 mb-3">
+                            <div class="alert alert-danger mb-0">
+                                <strong><i class="ti ti-alert-circle"></i> Причина ошибки:</strong><br>
+                                ${tx.failureReason}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${tx.processedAt ? `
+                        <div class="col-md-6 mb-3">
+                            <strong>Дата обработки:</strong><br>
+                            ${new Date(tx.processedAt).toLocaleString('ru-RU')}
+                        </div>
+                    ` : ''}
+
+                    <div class="col-12 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Счет списания:</strong><br>
+                                        ${tx.debitAccount.name}<br>
+                                        <small class="text-muted">${tx.debitAccount.company}</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Счет зачисления:</strong><br>
+                                        ${tx.creditAccount.name}<br>
+                                        <small class="text-muted">${tx.creditAccount.company}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <strong>Сумма:</strong><br>
+                        <span class="h3">${tx.amount.formatted}</span>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <strong>Дата выполнения:</strong><br>
+                        ${new Date(tx.executedAt).toLocaleString('ru-RU')}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <strong>Инициатор:</strong><br>
+                        ${tx.initiatedBy.email}
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <strong>Ключ идемпотентности:</strong><br>
+                        <code class="small">${tx.idempotencyKey}</code>
+                    </div>
+
+                    ${tx.metadata && Object.keys(tx.metadata).length > 0 ? `
+                        <div class="col-12 mt-2">
+                            <strong>Метаданные:</strong>
+                            <pre class="bg-light p-3 rounded small">${JSON.stringify(tx.metadata, null, 2)}</pre>
+                        </div>
+                    ` : ''}
+
+                    ${tx.relatedEntity ? `
+                        <div class="col-12 mt-2">
+                            <strong>Связанная сущность:</strong><br>
+                            <span class="badge bg-info text-white">${tx.relatedEntity.type}</span>
+                            <code class="small">${tx.relatedEntity.id}</code>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Форматирование денег (balance приходит в копейках)
+        function formatMoney(amountInKopecks) {
+            const amountInRubles = amountInKopecks / 100;
+            return new Intl.NumberFormat('ru-RU', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amountInRubles);
+        }
+
+        // Выход
+        function logout() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login.html';
+        }
+
+        // Инициализация
+        if (checkAuth()) {
+            loadAccounts();
+            loadTransferHistory();
+        }
+    </script>
+</body>
+</html>

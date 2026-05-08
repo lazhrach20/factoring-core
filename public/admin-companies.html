@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Управление компаниями и счетами - Factoring Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+    <style>
+        .company-card { transition: all 0.2s; }
+        .company-card:hover { box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); }
+        .badge-type { font-size: 0.875rem; }
+    </style>
+</head>
+<body>
+<div class="page">
+    <!-- Navigation Component -->
+    <div id="navigation-container"></div>
+
+    <div class="page-wrapper">
+        <!-- Page header -->
+        <div class="page-header d-print-none">
+            <div class="container-xl">
+                <div class="row g-2 align-items-center">
+                    <div class="col">
+                        <h2 class="page-title">Управление компаниями и счетами</h2>
+                        <div class="text-muted">Создание и управление компаниями-клиентами</div>
+                    </div>
+                    <div class="col-auto ms-auto">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCreateCompany">
+                            <i class="ti ti-plus me-2"></i>Создать компанию
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page body -->
+        <div class="page-body">
+            <div class="container-xl">
+                <!-- Filter tabs -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <ul class="nav nav-pills">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#" data-filter="all">Все компании</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" data-filter="supplier">Поставщики</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" data-filter="debtor">Дебиторы</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#" data-filter="factor">Факторы</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Companies list -->
+                <div id="companiesList" class="row row-cards"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create Company -->
+<div class="modal modal-blur fade" id="modalCreateCompany" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Создать новую компанию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formCreateCompany">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label required">Название компании</label>
+                            <input type="text" class="form-control" name="name" placeholder="ООО Компания" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">Тип</label>
+                            <select class="form-select" name="type" required>
+                                <option value="">Выберите тип...</option>
+                                <option value="supplier">Поставщик</option>
+                                <option value="debtor">Дебитор</option>
+                                <option value="factor">Фактор</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label required">ИНН</label>
+                            <input type="text" class="form-control" name="inn" placeholder="1234567890" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">КПП</label>
+                            <input type="text" class="form-control" name="kpp" placeholder="123456789">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">ОГРН</label>
+                            <input type="text" class="form-control" name="ogrn" placeholder="1234567890123">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Юридический адрес</label>
+                        <input type="text" class="form-control" name="legalAddress" placeholder="г. Москва, ул. Ленина, д. 1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Почтовый адрес</label>
+                        <input type="text" class="form-control" name="postalAddress" placeholder="г. Москва, ул. Ленина, д. 1">
+                    </div>
+                    <hr>
+                    <h4 class="mb-3">Банковские реквизиты</h4>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Расчетный счет</label>
+                            <input type="text" class="form-control" name="bankAccount" placeholder="40702810100000000001">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">БИК банка</label>
+                            <input type="text" class="form-control" name="bankBik" placeholder="044525225">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Корреспондентский счет</label>
+                        <input type="text" class="form-control" name="correspondentAccount" placeholder="30101810400000000225">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать компанию</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Create Account -->
+<div class="modal modal-blur fade" id="modalCreateAccount" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Создать счет</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formCreateAccount">
+                <input type="hidden" name="companyId" id="accountCompanyId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Компания</label>
+                        <input type="text" class="form-control" id="accountCompanyName" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">Название счета</label>
+                        <input type="text" class="form-control" name="name" placeholder="Операционный счет" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label required">Владелец (пользователь)</label>
+                        <select class="form-select" name="ownerId" id="accountOwnerId" required>
+                            <option value="">Выберите пользователя...</option>
+                        </select>
+                        <small class="form-hint">Выберите пользователя компании, который будет владельцем счета</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Начальный баланс</label>
+                            <input type="number" class="form-control" name="balance" value="0" min="0" step="100">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Валюта</label>
+                            <select class="form-select" name="currency">
+                                <option value="RUB">RUB (₽)</option>
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать счет</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: View Accounts -->
+<div class="modal modal-blur fade" id="modalViewAccounts" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Счета компании</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="accountsListContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirm Action -->
+<div class="modal modal-blur fade" id="modalConfirm" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="modal-title" id="confirmTitle">Подтверждение</div>
+                <div id="confirmMessage"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="confirmButton">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <div id="toastNotification" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="ti ti-bell icon me-2" id="toastIcon"></i>
+            <strong class="me-auto" id="toastTitle">Уведомление</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+<script src="/js/navigation.js"></script>
+<script>
+    const API_BASE = window.location.origin;
+    let currentFilter = 'all';
+
+    // Get auth token from localStorage
+    function getToken() {
+        return localStorage.getItem('accessToken');
+    }
+
+    // Show toast notification
+    function showToast(message, type = 'info', title = null) {
+        const toastEl = document.getElementById('toastNotification');
+        const toastIcon = document.getElementById('toastIcon');
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+
+        // Remove old color classes
+        toastEl.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-warning', 'text-bg-info');
+
+        // Set icon and color based on type
+        const icons = {
+            success: { icon: 'ti-check', class: 'text-bg-success', title: 'Успешно' },
+            error: { icon: 'ti-alert-circle', class: 'text-bg-danger', title: 'Ошибка' },
+            warning: { icon: 'ti-alert-triangle', class: 'text-bg-warning', title: 'Внимание' },
+            info: { icon: 'ti-info-circle', class: 'text-bg-info', title: 'Информация' }
+        };
+
+        const config = icons[type] || icons.info;
+        toastIcon.className = `ti ${config.icon} icon me-2`;
+        toastEl.classList.add(config.class);
+        toastTitle.textContent = title || config.title;
+        toastMessage.textContent = message;
+
+        const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+        toast.show();
+    }
+
+    // Show confirmation dialog
+    function showConfirm(message, title = 'Подтверждение') {
+        return new Promise((resolve) => {
+            const modalEl = document.getElementById('modalConfirm');
+            const confirmTitle = document.getElementById('confirmTitle');
+            const confirmMessage = document.getElementById('confirmMessage');
+            const confirmButton = document.getElementById('confirmButton');
+
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+
+            const modal = new bootstrap.Modal(modalEl);
+
+            // Remove old listeners
+            const newButton = confirmButton.cloneNode(true);
+            confirmButton.parentNode.replaceChild(newButton, confirmButton);
+
+            // Add new listener
+            newButton.addEventListener('click', () => {
+                modal.hide();
+                resolve(true);
+            });
+
+            modalEl.addEventListener('hidden.bs.modal', () => {
+                resolve(false);
+            }, { once: true });
+
+            modal.show();
+        });
+    }
+
+    // Logout
+    function logout() {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('jwt_token');
+        localStorage.removeItem('refreshToken');
+        // Сохраняем текущий URL для возврата после логина
+        localStorage.setItem('redirect_after_login', window.location.pathname);
+        window.location.href = '/login.html';
+    }
+
+    // API request helper
+    async function apiRequest(url, options = {}) {
+        const token = getToken();
+
+        if (!token) {
+            logout();
+            return;
+        }
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+
+        const response = await fetch(`${API_BASE}${url}`, {
+            ...options,
+            headers: { ...headers, ...options.headers }
+        });
+
+        if (response.status === 401) {
+            // Токен невалиден или истек
+            logout();
+            return;
+        }
+
+        if (response.status === 403) {
+            // Нет прав доступа
+            showToast('Доступ запрещен. Требуется роль администратора.', 'error');
+            setTimeout(() => window.location.href = '/profile.html', 2000);
+            return;
+        }
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Ошибка запроса');
+        }
+
+        return response.json();
+    }
+
+    // Load companies
+    async function loadCompanies(type = null) {
+        try {
+            const url = type && type !== 'all' ? `/api/companies?type=${type}` : '/api/companies';
+            const companies = await apiRequest(url);
+            renderCompanies(companies);
+        } catch (error) {
+            console.error('Error loading companies:', error);
+            showToast('Ошибка загрузки компаний: ' + error.message, 'error');
+        }
+    }
+
+    // Escape string for use in HTML attributes
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Format role names for display
+    function formatRoleName(role) {
+        const roleNames = {
+            'ROLE_USER': 'Пользователь',
+            'ROLE_ADMIN': 'Администратор',
+            'ROLE_MANAGER': 'Менеджер',
+            'ROLE_AUDIT_VIEWER': 'Аудитор',
+            'ROLE_ACCOUNTANT': 'Бухгалтер',
+            'ROLE_SUPPORT': 'Поддержка'
+        };
+        return roleNames[role] || role;
+    }
+
+    // Render companies
+    function renderCompanies(companies) {
+        const container = document.getElementById('companiesList');
+
+        if (companies.length === 0) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="empty">
+                        <div class="empty-icon">
+                            <i class="ti ti-building"></i>
+                        </div>
+                        <p class="empty-title">Компании не найдены</p>
+                        <p class="empty-subtitle text-muted">Создайте первую компанию</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = companies.map(company => `
+            <div class="col-md-6 col-lg-4">
+                <div class="card company-card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <span class="avatar avatar-lg" style="background-color: ${getTypeColor(company.type)};">
+                                    ${company.name.substring(0, 2)}
+                                </span>
+                            </div>
+                            <div class="flex-fill">
+                                <h3 class="card-title mb-1">${company.name}</h3>
+                                <span class="badge badge-type ${getTypeBadgeClass(company.type)}">${getTypeLabel(company.type)}</span>
+                                <span class="badge ${company.status === 'active' ? 'bg-success' : 'bg-secondary'} ms-1">
+                                    ${company.status === 'active' ? 'Активна' : 'Неактивна'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">ИНН:</small> <strong>${company.inn}</strong>
+                        </div>
+                        ${company.kpp ? `<div class="mb-2"><small class="text-muted">КПП:</small> ${company.kpp}</div>` : ''}
+                        ${company.legalAddress ? `<div class="mb-3"><small class="text-muted">Адрес:</small> ${company.legalAddress}</div>` : ''}
+                        <div class="btn-list">
+                            <button class="btn btn-sm btn-primary"
+                                    data-company-id="${company.id}"
+                                    data-company-name="${escapeHtml(company.name)}"
+                                    onclick="openCreateAccountModal(this.dataset.companyId, this.dataset.companyName)">
+                                <i class="ti ti-plus"></i> Счет
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewAccounts('${company.id}')">
+                                <i class="ti ti-eye"></i> Счета
+                            </button>
+                            ${company.status === 'active'
+                                ? `<button class="btn btn-sm btn-outline-warning" onclick="deactivateCompany('${company.id}')"><i class="ti ti-ban"></i></button>`
+                                : `<button class="btn btn-sm btn-outline-success" onclick="activateCompany('${company.id}')"><i class="ti ti-check"></i></button>`
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-muted">Создана: ${new Date(company.createdAt).toLocaleDateString('ru-RU')}</small>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Helper functions for company types
+    function getTypeLabel(type) {
+        const labels = {
+            'supplier': 'Поставщик',
+            'debtor': 'Дебитор',
+            'factor': 'Фактор'
+        };
+        return labels[type] || type;
+    }
+
+    function getTypeBadgeClass(type) {
+        const classes = {
+            'supplier': 'bg-blue',
+            'debtor': 'bg-orange',
+            'factor': 'bg-purple'
+        };
+        return classes[type] || 'bg-secondary';
+    }
+
+    function getTypeColor(type) {
+        const colors = {
+            'supplier': '#206bc4',
+            'debtor': '#d63939',
+            'factor': '#ae3ec9'
+        };
+        return colors[type] || '#6c757d';
+    }
+
+    // Create company form handler
+    document.getElementById('formCreateCompany').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            await apiRequest('/api/companies', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('modalCreateCompany')).hide();
+
+            // Reset form
+            e.target.reset();
+
+            // Reload companies
+            await loadCompanies(currentFilter);
+
+            showToast('Компания успешно создана!', 'success');
+        } catch (error) {
+            showToast('Ошибка создания компании: ' + error.message, 'error');
+        }
+    });
+
+    // Open create account modal
+    async function openCreateAccountModal(companyId, companyName) {
+        document.getElementById('accountCompanyId').value = companyId;
+        document.getElementById('accountCompanyName').value = companyName;
+
+        // Load users for this company
+        try {
+            const response = await apiRequest(`/api/admin/users?companyId=${companyId}`);
+            const select = document.getElementById('accountOwnerId');
+            select.innerHTML = '<option value="">Выберите пользователя...</option>';
+
+            // API может вернуть либо массив, либо объект с полем users
+            const users = Array.isArray(response) ? response : (response?.users || []);
+
+            if (users && users.length > 0) {
+                users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.id;
+                    option.textContent = `${user.firstName} ${user.lastName} (${user.email})`;
+                    select.appendChild(option);
+                });
+            } else {
+                select.innerHTML = '<option value="">Нет пользователей - сначала зарегистрируйте</option>';
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+            const select = document.getElementById('accountOwnerId');
+            select.innerHTML = '<option value="">Ошибка загрузки пользователей</option>';
+            showToast('Ошибка загрузки пользователей компании: ' + error.message, 'error');
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('modalCreateAccount'));
+        modal.show();
+    }
+
+    // Create account form handler
+    document.getElementById('formCreateAccount').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            await apiRequest('/api/accounts', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('modalCreateAccount')).hide();
+
+            // Reset form
+            e.target.reset();
+
+            showToast('Счет успешно создан!', 'success');
+        } catch (error) {
+            showToast('Ошибка создания счета: ' + error.message, 'error');
+        }
+    });
+
+    // View accounts
+    async function viewAccounts(companyId) {
+        try {
+            const accounts = await apiRequest(`/api/accounts?companyId=${companyId}`);
+
+            if (accounts.length === 0) {
+                showToast('У компании пока нет счетов', 'info');
+                return;
+            }
+
+            // Render accounts in modal
+            const accountsHtml = accounts.map(acc => `
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h3 class="card-title mb-1">${acc.name}</h3>
+                                <div class="text-muted small">ID: ${acc.id.substring(0, 8)}</div>
+                                <div class="text-muted small">Компания: ${acc.company.name}</div>
+                            </div>
+                            <div class="col-auto">
+                                <div class="h2 mb-0">${acc.balanceFormatted}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('accountsListContent').innerHTML = accountsHtml;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalViewAccounts'));
+            modal.show();
+        } catch (error) {
+            showToast('Ошибка загрузки счетов: ' + error.message, 'error');
+        }
+    }
+
+    // Deactivate company
+    async function deactivateCompany(companyId) {
+        const confirmed = await showConfirm('Вы уверены, что хотите деактивировать компанию?', 'Деактивация компании');
+        if (!confirmed) return;
+
+        try {
+            await apiRequest(`/api/companies/${companyId}/deactivate`, { method: 'POST' });
+            await loadCompanies(currentFilter);
+            showToast('Компания деактивирована', 'success');
+        } catch (error) {
+            showToast('Ошибка деактивации: ' + error.message, 'error');
+        }
+    }
+
+    // Activate company
+    async function activateCompany(companyId) {
+        try {
+            await apiRequest(`/api/companies/${companyId}/activate`, { method: 'POST' });
+            await loadCompanies(currentFilter);
+            showToast('Компания активирована', 'success');
+        } catch (error) {
+            showToast('Ошибка активации: ' + error.message, 'error');
+        }
+    }
+
+    // Filter tabs
+    document.querySelectorAll('[data-filter]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            // Update active state
+            document.querySelectorAll('[data-filter]').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+
+            // Load companies with filter
+            currentFilter = link.dataset.filter;
+            loadCompanies(currentFilter === 'all' ? null : currentFilter);
+        });
+    });
+
+    // Initial load - сначала проверяем аутентификацию
+    async function initialize() {
+        // Проверяем наличие токена
+        if (!getToken()) {
+            logout();
+            return;
+        }
+
+        // Загружаем компании
+        loadCompanies();
+    }
+
+    // Запускаем инициализацию
+    initialize();
+</script>
+</body>
+</html>
